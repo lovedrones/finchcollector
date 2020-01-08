@@ -25,11 +25,12 @@ class Finch(models.Model):
     age = models.IntegerField()
     toys = models.ManyToManyField(Toy)
 
-    def fed_for_today(self):
-           return self.feeding_set.filter(date=date.today()).count() >= len(MEALS)
 
     def __str__(self):
-     return self.name
+           return self.name
+
+    def fed_for_today(self):
+           return self.feeding_set.filter(date=date.today()).count() >= len(MEALS)
 
     def get_absolute_url(self):
        return reverse("detail", kwargs={"finch_id": self.id})
@@ -52,6 +53,11 @@ class Feeding(models.Model):
     class Meta:
         ordering = ['-date']
 
+class Photo(models.Model):
+    url = models.CharField(max_length=200)
+    finch = models.ForeignKey(Finch, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"Photo for finch_id: {self.finch_id} @{self.url}"
 
 

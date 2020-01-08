@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
-from .models import Finch, Toy
 from .forms import FeedingForm
+import uuid 
+import boto3
+from .models import Finch, Toy, Photo
 
-
+S3_BASE_URL = 'https://s3-us-west-1.amazonaws.com/'
+BUCKET = 'finchcollector-jlo'
 
 def home(request):
     return render(request,'home.html')
@@ -72,3 +75,17 @@ def assoc_toy(request, finch_id, toy_id):
   finch = Finch.objects.get(id=finch_id)
   finch.toys.add(toy_id)
   return redirect(finch)
+
+def add_photo(request, finch_id):
+    photo_file = request.FILES.get('photo-file', None)
+    if photo_file:
+        s3 = boto3.client('s3')
+        key = uuid.uuid4().hex[:6] + photo_file.name[photo_file.name.rfind('.'):]
+        try:
+            s3.upload_fileobj(photo_file, BUCKET, key)
+            url = f"{S3_BASE_URL}{BUCKET}/{key}"
+            photo = Photo(url=url, finch_id=finch_id)
+            photo.save()
+        except:
+            print('An error occurred uploading file to S3')
+    return redirect('detail', finch_id=finch_id)  
