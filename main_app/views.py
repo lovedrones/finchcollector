@@ -27,6 +27,7 @@ def finches_index(request):
     'finches': finches
   })    
 
+@login_required
 def finches_detail(request, finch_id):
   finch = Finch.objects.get(id=finch_id)  
   toys_finch_doesnt_have = Toy.objects.exclude(id__in = finch.toys.all().values_list('id'))
@@ -35,6 +36,7 @@ def finches_detail(request, finch_id):
       'finch': finch, 'feeding_form': feeding_form,
       'toys': toys_finch_doesnt_have
   })
+
 
 class FinchCreate(LoginRequiredMixin, CreateView):
     model = Finch
@@ -45,6 +47,7 @@ class FinchCreate(LoginRequiredMixin, CreateView):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
+
 class FinchUpdate(UpdateView):
     model = Finch
     fields = ['breed', 'description', 'age']
@@ -53,6 +56,7 @@ class FinchDelete(DeleteView):
     model = Finch
     success_url = '/finches/'
 
+@login_required
 def add_feeding(request, finch_id):
     form = FeedingForm(request.POST)
     if form.is_valid():
@@ -81,11 +85,13 @@ class ToyDelete(DeleteView):
     model = Toy 
     success_url = '/toys/'    
 
+@login_required
 def assoc_toy(request, finch_id, toy_id):
   finch = Finch.objects.get(id=finch_id)
   finch.toys.add(toy_id)
   return redirect(finch)
 
+@login_required
 def add_photo(request, finch_id):
     photo_file = request.FILES.get('photo-file', None)
     if photo_file:
